@@ -21,6 +21,7 @@ def configure_seed(seed):
 class LinearModel(object):
     def __init__(self, n_classes, n_features, **kwargs):
         self.W = np.zeros((n_classes, n_features))
+        print("W shape is - ", self.W.shape)
 
     def update_weight(self, x_i, y_i, **kwargs):
         raise NotImplementedError
@@ -56,7 +57,8 @@ class Perceptron(LinearModel):
         # Q1.1a
         y_hat = self.predict(x_i)
         if (y_hat != y_i):
-            self.W[y_i] += self.W[y_i] * x_i  
+            self.W[y_i] += x_i
+            self.W[y_hat] -= x_i
 
 class LogisticRegression(LinearModel):
     def update_weight(self, x_i, y_i, learning_rate=0.001):
@@ -85,7 +87,16 @@ class LogisticRegression(LinearModel):
         # # self.W[y_i] = np.dot(np.dot(np.linalg.inv(np.dot(x_i.transpose(), x_i)), x_i.transpose()), y_i) 
         # In this case we are using cross-entropy as an error function
         # we are also assuming we have a binary logistic regression
-        self.W[y_i] = self.W[y_i] + learning_rate * x_i * (y_i - (1/(1 + np.exp(-self.W[y_i] * x_i))))
+        # Label scores according to the model (num_labels x 1).
+        label_scores = self.W.dot(x_i)[:, None]
+        # One-hot vector with the true label (num_labels x 1).
+        y_one_hot = np.zeros((np.size(self.W, 0), 1))
+        y_one_hot[y_i] = 1
+        # Softmax function.
+        # This gives the label probabilities according to the model (num_labels x 1).
+        label_probabilities = np.exp(label_scores) / np.sum(np.exp(label_scores))
+        # SGD update. W is num_labels x num_features.
+        self.W += learning_rate * (y_one_hot - label_probabilities) * x_i[None, :]
 
 
 class MLP(object):
@@ -94,13 +105,40 @@ class MLP(object):
     # in main().
     def __init__(self, n_classes, n_features, hidden_size):
         # Initialize an MLP with a single hidden layer.
-        raise NotImplementedError
-
+        # weights init as normal distributition
+        self.W1 = np.random.normal(loc = 0.1, scale = 0.01)
+        self.W2 = np.random.normal(loc = 0.1, scale = 0.01)
+        # biases init as zeros
+        self.b1 = np.zeros((hidden_size))
+        self.b2 = np.zeros((hidden_size))
+        # init of pre/post activation of hidden layers
+        # self.pre_act_H = np.zeros(hidden_size)
+        # self.pos_act_H = np.zeros(hidden_size)
+        self.hidden_size = hidden_size
+    
+    def ReLu(self, X):
+        return max(0.0, X)
+    def ReLu_deriv(self, X):
+        if X >= 0:
+            return 1
+        else:
+            return 0
     def predict(self, X):
         # Compute the forward pass of the network. At prediction time, there is
         # no need to save the values of hidden nodes, whereas this is required
         # at training time.
-        raise NotImplementedError
+        # for sample in range(X.shape[0]):
+        #     for unit in range(self.hidden_size):
+        #         self.pre_act_H[unit] = np.dot(self.W[:,unit], X[sample,:])
+        #         self.pos_act_H[unit] = ReLu(self.pre_act_H[unit])
+        #     self.pre_act_O = np.dot(self.pre_act_H, self.W)
+        #     self.pos_act_O = ReLu(pre_act_O)
+
+            # cross-entropy error function
+            # the same as for question above?
+        temp = self.ReLu(np.dot(X, self.W1) + self.b1)
+        y_hat = np.dot(temp, self.W2) + self.b2 
+        return y_hat
 
     def evaluate(self, X, y):
         """
@@ -114,8 +152,12 @@ class MLP(object):
         return n_correct / n_possible
 
     def train_epoch(self, X, y, learning_rate=0.001):
-        raise NotImplementedError
+        for x_i, y_i in zip(X, y):
+            y_hat = self.predict(x_i)
+            # cross entropy
 
+        # raise NotImplementedError
+        pass 
 
 def plot(epochs, valid_accs, test_accs):
     plt.xlabel('Epoch')
@@ -157,14 +199,13 @@ def main():
     n_feats = train_X.shape[1]
 
     # initialize the model
-    print('This is the shape of x_i - ', n_classes)
 
     if opt.model == 'perceptron':
         model = Perceptron(n_classes, n_feats)
     elif opt.model == 'logistic_regression':
         model = LogisticRegression(n_classes, n_feats)
     else:
-        model = MLP(n_classes, n_feats, opt.hidden_size, opt.layers)
+        model = MLP(n_classes, n_feats, opt.hidden_size)
     epochs = np.arange(1, opt.epochs + 1)
     valid_accs = []
     test_accs = []
