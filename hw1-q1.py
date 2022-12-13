@@ -68,34 +68,14 @@ class LogisticRegression(LinearModel):
         learning_rate (float): keep it at the default value for your plots
         """
         # Q1.1b
-        # print("y_i is - ", y_i)
-        # x_i = x_i.reshape(x_i.shape[0], 1)
-        # # print("x_i shape is - ", x_i.shape)
-        # # print("x_i is - ", x_i)
-        # # x_i = x_i.transpose()
-        # x_bias = np.ones((x_i.shape[0], 1))
-        # # print("x_bias is - ", x_bias, "his shape is - ", x_bias.shape)
-        # phi_i = np.hstack((x_bias, x_i))
-        # # print("Feature matrix is - ", phi_i)
-        # w_1 = np.dot(phi_i.transpose(), y_i)
-        # # print("2nd half of calculation is - ", w_1)
-        # w_2 = np.dot(phi_i.transpose(), phi_i)
-        # # print("without inverse 1st half of calculation is - ", w_2)
-        # w_2 = np.linalg.inv(w_2)
-        # # print("inverting we have - ", w_2)
-        # self.W[y_i] = np.dot(w_2, w_1)
-        # # self.W[y_i] = np.dot(np.dot(np.linalg.inv(np.dot(x_i.transpose(), x_i)), x_i.transpose()), y_i) 
-        # In this case we are using cross-entropy as an error function
-        # we are also assuming we have a binary logistic regression
-        # Label scores according to the model (num_labels x 1).
         label_scores = self.W.dot(x_i)[:, None]
-        # One-hot vector with the true label (num_labels x 1).
+        # One-hot vector with the true label (num_labels x_i 1).
         y_one_hot = np.zeros((np.size(self.W, 0), 1))
         y_one_hot[y_i] = 1
         # Softmax function.
-        # This gives the label probabilities according to the model (num_labels x 1).
+        # This gives the label probabilities according to the model (num_labels x_i 1).
         label_probabilities = np.exp(label_scores) / np.sum(np.exp(label_scores))
-        # SGD update. W is num_labels x num_features.
+        # SGD update. W is num_labels x_i num_features.
         self.W += learning_rate * (y_one_hot - label_probabilities) * x_i[None, :]
 
 
@@ -106,39 +86,93 @@ class MLP(object):
     def __init__(self, n_classes, n_features, hidden_size):
         # Initialize an MLP with a single hidden layer.
         # weights init as normal distributition
-        self.W1 = np.random.normal(loc = 0.1, scale = 0.01)
-        self.W2 = np.random.normal(loc = 0.1, scale = 0.01)
+        self.W1 = np.random.normal(loc = 0.1, scale = 0.01, size = hidden_size)
+        # self.W2 = np.random.normal(loc = 0.1, scale = 0.01)
+        # self.weights = []
         # biases init as zeros
         self.b1 = np.zeros((hidden_size))
-        self.b2 = np.zeros((hidden_size))
-        # init of pre/post activation of hidden layers
-        # self.pre_act_H = np.zeros(hidden_size)
-        # self.pos_act_H = np.zeros(hidden_size)
-        self.hidden_size = hidden_size
+        # self.b2 = np.zeros((hidden_size))
+        # self.hidden_size = hidden_size
     
-    def ReLu(self, X):
-        return max(0.0, X)
-    def ReLu_deriv(self, X):
-        if X >= 0:
-            return 1
-        else:
-            return 0
+    # def ReLu(self, X):
+    #     return max(0.0, X)
+    # def ReLu_deriv(self, X):
+    #     if X >= 0:
+    #         return 1
+    #     else:
+    #         return 0
+    def compute_loss(self, output, y_i):
+        probs = np.exp(output) / np.sum(np.exp(output))
+        loss = np.dot(-y_i, np.log(probs))
+        return loss   
+    def forward(self, x_i, weights, biases):
+        num_layers = len(weights)
+        hiddens = []
+        g = np.max
+        for i in range(num_layers):
+            h = x_i if i == 0 else hiddens[i-1]
+            z = np.dot(weights[i], h) + biases[i]
+            if i < num_layers-1:  # Assume the output layer has no activation.
+                hiddens.append(g(z))
+        output = z
+        # For classification this is a vector of logits (label scores).
+        # For regression this is a vector of predictions.
+        return output, hiddens
+
+    def backward(self, x_i, y_i, output, hiddens, weights):
+        num_layers = len(weights)
+        print("num_layers is - ", num_layers)
+        g = np.max
+        z = output
+        # softmax transformation.
+        probs = np.exp(output) / np.sum(np.exp(output))
+        grad_z = probs - y_i  # Grad of loss wrt last z.
+        grad_weights = []
+        grad_biases = []
+        print("grad_z is - ", grad_z)
+        for i in range(num_layers-1, -1, -1):
+            # Gradient of hidden parameters.
+            h = x_i if i == 0 else hiddens[i-1]
+            print("h is - ", h)
+            grad_weights.append(np.dot(grad_z, h.T))
+            grad_biases.append(grad_z)
+
+            # Gradient of hidden layer below.
+            grad_h = np.dot(weights[i].T, grad_z)
+
+            # Gradient of hidden layer below before activation.
+            assert(g == np.max)
+            grad_z = grad_h * (1-h**2)   # Grad of loss wrt z3.
+
+        grad_weights.reverse()
+        grad_biases.reverse()
+        return grad_weights, grad_biases
+
+    def update_parameters(self, weights, biases, grad_weights, grad_biases, learning_rate):
+        num_layers = len(weights)
+        for i in range(num_layers):
+            weights[i] -= learning_rate * grad_weights[i]
+            biases[i] -= learning_rate * grad_biases[i]
+    def predict_label(self, output):
+        # The most probable label is also the label with the largest logit.
+        y_hat = np.zeros_like(output)
+        y_hat[np.argmax(output)] = 1
+        return y_hat
+
     def predict(self, X):
         # Compute the forward pass of the network. At prediction time, there is
         # no need to save the values of hidden nodes, whereas this is required
         # at training time.
-        # for sample in range(X.shape[0]):
-        #     for unit in range(self.hidden_size):
-        #         self.pre_act_H[unit] = np.dot(self.W[:,unit], X[sample,:])
-        #         self.pos_act_H[unit] = ReLu(self.pre_act_H[unit])
-        #     self.pre_act_O = np.dot(self.pre_act_H, self.W)
-        #     self.pos_act_O = ReLu(pre_act_O)
-
-            # cross-entropy error function
-            # the same as for question above?
-        temp = self.ReLu(np.dot(X, self.W1) + self.b1)
-        y_hat = np.dot(temp, self.W2) + self.b2 
-        return y_hat
+        # temp = self.ReLu(np.dot(X, self.W1) + self.b1)
+        # y_hat = np.dot(temp, self.W2) + self.b2 
+        # return y_hat
+        predicted_labels = []
+        for x_i in X:
+            output, temp = self.forward(x_i, self.W1, self.b1)
+            y_hat = self.predict_label(output)
+            predicted_labels.append(y_hat)
+        predicted_labels = np.array(predicted_labels)
+        return predicted_labels
 
     def evaluate(self, X, y):
         """
@@ -152,12 +186,15 @@ class MLP(object):
         return n_correct / n_possible
 
     def train_epoch(self, X, y, learning_rate=0.001):
+        total_loss = 0
         for x_i, y_i in zip(X, y):
-            y_hat = self.predict(x_i)
-            # cross entropy
-
-        # raise NotImplementedError
-        pass 
+            output, hidden_size = self.forward(x_i = x_i, weights = self.W1, biases = self.b1)
+            loss = self.compute_loss(output, y_i)
+            total_loss += loss
+            grad_weights, grad_biases = self.backward(x_i, y_i, output, hidden_size, self.W1)
+            self.update_parameters(self.W1, self.b1, grad_weights, grad_biases, learning_rate = learning_rate)
+        print("Total loss: %f" % total_loss)
+        return loss
 
 def plot(epochs, valid_accs, test_accs):
     plt.xlabel('Epoch')
