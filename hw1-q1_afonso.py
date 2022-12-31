@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import utils
+# np.seterr(divide='ignore', invalid='ignore')
 
 
 def configure_seed(seed):
@@ -21,7 +22,7 @@ def configure_seed(seed):
 class LinearModel(object):
     def __init__(self, n_classes, n_features, **kwargs):
         self.W = np.zeros((n_classes, n_features))
-        # print("W shape is - ", self.W.shape)
+        print("W shape is - ", self.W.shape)
 
     def update_weight(self, x_i, y_i, **kwargs):
         raise NotImplementedError
@@ -81,34 +82,34 @@ class LogisticRegression(LinearModel):
 def ReLu(x):
     return np.maximum(x, 0)
 def ReLu_deriv(x):
-    relu_der = np.empty(x.shape)
+    relu_der = []
     for i in range(x.shape[0]):
-        if x[i] > 0:
-            relu_der[i] = 1
+        if x[i] >= 0:
+            relu_der.append(1)
         else:
-            relu_der[i] = 0
+            relu_der.append(0)
     return relu_der
 
 class MLP(object):
-    # Q2.2b. This MLP skeleton code allows the MLP to be used in place of the
+    # Q3.2b. This MLP skeleton code allows the MLP to be used in place of the
     # linear models with no changes to the training loop or evaluation code
     # in main().
     def __init__(self, n_classes, n_features, hidden_size):
         # Initialize an MLP with a single hidden layer.
         # weights init as normal distributition
         units = [n_features, hidden_size, n_classes]
-        W1 = np.random.normal(loc = 0.1, scale = 0.1, size = (units[1], units[0]))
+        W1 = np.random.normal(loc = 0.1, scale = 0.01, size = (units[1], units[0]))
         b1 = np.zeros(units[1])
-        W2 = np.random.normal(loc = 0.1, scale = 0.1, size = (units[2], units[1]))
+        W2 = np.random.normal(loc = 0.1, scale = 0.01, size = (units[2], units[1]))
         b2 = np.zeros(units[2])
         self.n_classes = n_classes
         self.weights = [W1, W2]
         self.biases = [b1, b2]
 
     def compute_loss(self, output, y_i):
-        # print("output is - ", output)
+        output = output - np.max(output)
         probs = np.exp(output) / np.sum(np.exp(output))
-        loss = np.dot(-y_i, np.log(probs))
+        loss = -np.log(probs[int(y_i)])
         return loss   
     def forward(self, x_i, weights, biases):
         num_layers = len(weights)
@@ -116,7 +117,7 @@ class MLP(object):
         g = ReLu
         for i in range(num_layers):
             h = x_i if i == 0 else hiddens[i-1]
-            z = np.dot(weights[i], h) + biases[i]
+            z = np.dot(weights[i], h.T) + biases[i]
             if i < num_layers - 1:  # Assume the output layer has no activation.
                 hiddens.append(g(z))
         output = z
@@ -127,9 +128,9 @@ class MLP(object):
     def backward(self, x_i, y_i, output, hiddens, weights):
         num_layers = len(weights)
         g = ReLu
-        z = output
+        z = output - np.max(output)
         # softmax transformation.
-        probs = np.exp(output) / np.sum(np.exp(output))
+        probs = np.exp(z) / np.sum(np.exp(z))
         grad_z = probs - y_i  # Grad of loss wrt last z.
         grad_weights = []
         grad_biases = []
@@ -171,7 +172,6 @@ class MLP(object):
         predicted_labels = []
         for x_i in X:
             output, temp = self.forward(x_i, self.weights, self.biases)
-            output = output - max(output)
             y_hat = self.predict_label(output)
             predicted_labels.append(y_hat)
         predicted_labels = np.array(predicted_labels)
@@ -184,10 +184,6 @@ class MLP(object):
         """
         # Identical to LinearModel.evaluate()
         y_hat = self.predict(X)
-        y_hat = np.argmax(y_hat,axis=1)
-        # print("y is - ", y, "and y_hat is - ", y_hat)
-        # print("y type is - ", type(y), "and y_hat type is - ", type(y_hat))
-        # print("y shape is - ", y.shape, "and y_hat shape is - ", y_hat.shape)
         n_correct = (y == y_hat).sum()
         n_possible = y.shape[0]
         return n_correct / n_possible
@@ -196,23 +192,25 @@ class MLP(object):
         total_loss = 0
         # print("X shape is - ", X.shape)
         # print("y shape is - ", y.shape)
-        onehot = np.zeros((np.size(y, 0), self.n_classes))
-        # print("onehot is - ", onehot)
+        one_hot = np.zeros((np.size(y, 0), self.n_classes))
         for i in range(np.size(y, 0)):
-                onehot[i, y[i]] = 1
-        y = onehot
+                one_hot[i, y[i]] = 1
+        y = one_hot
+        counter=0
         # print("y is - ", y)
         for x_i, y_i in zip(X, y):
+            counter +=1
             output, hiddens = self.forward(x_i, self.weights, self.biases)
-            # y_max = np.argmax(y_i)
-            output = output - max(output)
+            y_max = np.argmax(y_i)
+            #print('yes')
             # print("y_i is - ", y_i)
-            # print("output before compute_loss is - ", output)
-            loss = self.compute_loss(output, y_i)
-            # print("output after compute_loss is - ", output)
+            loss = self.compute_loss(output, y_max)
             total_loss += loss
             grad_weights, grad_biases = self.backward(x_i, y_i, output, hiddens, self.weights)
+            #print('maybe')
             self.update_parameters(self.weights, self.biases, grad_weights, grad_biases, learning_rate = learning_rate)
+            #print('no')
+            print(counter)
         print("Total loss: %f" % total_loss)
         return loss
 
@@ -228,7 +226,7 @@ def plot(epochs, valid_accs, test_accs):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('model',
+    parser.add_argument('-model', default='mlp',
                         choices=['perceptron', 'logistic_regression', 'mlp'],
                         help="Which model should the script run?")
     parser.add_argument('-epochs', default=20, type=int,
@@ -278,9 +276,6 @@ def main():
         )
         valid_accs.append(model.evaluate(dev_X, dev_y))
         test_accs.append(model.evaluate(test_X, test_y))
-        print('Valid acc: %.4f' % (valid_accs[-1]))
-
-    print('Final Test acc: %.4f' % (model.evaluate(test_X, test_y)))
 
     # plot
     plot(epochs, valid_accs, test_accs)
