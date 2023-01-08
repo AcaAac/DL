@@ -212,7 +212,7 @@ def main():
     tgt_vocab_size = train_dataset.output_lang.n_words
 
     padding_idx = PAD_IDX
-
+    print("src_vocab_size is - ", src_vocab_size)
     encoder = Encoder(
         src_vocab_size,
         opt.hidden_size,
@@ -232,10 +232,10 @@ def main():
         padding_idx,
         opt.dropout,
     )
-
+    print("check 9")
     model = Seq2Seq(encoder, decoder).to(device)
     model.train()
-
+    print("check 10")
     print("Training...")
     val_acc, test_acc = train(
         data_iters,
@@ -244,6 +244,7 @@ def main():
         opt.n_epochs,
         padding_idx,
     )
+    print("check 11")
 
     print("Final validation error rate: %.4f" % (val_acc[-1]))
     print("Test error rate: %.4f" % (test_acc))

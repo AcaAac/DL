@@ -192,6 +192,8 @@ def plot_feature_maps(model, train_dataset):
 
 
 def main():
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    print(device)
     parser = argparse.ArgumentParser()
     parser.add_argument('-epochs', default=20, type=int,
                         help="""Number of epochs to train for. You should not
@@ -221,7 +223,7 @@ def main():
     print("n_classes is - ", n_classes, "n_feats is - ", n_feats)
     print("learning rate is @ - ", opt.learning_rate)
     # initialize the model
-    model = CNN(opt.dropout)
+    model = CNN(opt.dropout).to(device)
     
     # get an optimizer
     optims = {"adam": torch.optim.Adam, "sgd": torch.optim.SGD}
@@ -242,6 +244,9 @@ def main():
     for ii in epochs:
         print('Training epoch {}'.format(ii))
         for X_batch, y_batch in train_dataloader:
+            X_batch.to(device)
+            y_batch.to(device)
+            print(X_batch.is_cuda)
             # print("X_batch is - ", X_batch, "y_batch is - ", y_batch)
             loss = train_batch(
                 X_batch, y_batch, model, optimizer, criterion)

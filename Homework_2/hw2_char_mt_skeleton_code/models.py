@@ -70,13 +70,7 @@ class Attention(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(
-        self,
-        src_vocab_size,
-        hidden_size,
-        padding_idx,
-        dropout,
-    ):
+    def __init__(self,src_vocab_size,hidden_size,padding_idx,dropout):
         super(Encoder, self).__init__()
         self.hidden_size = hidden_size // 2
         self.dropout = dropout
@@ -94,11 +88,7 @@ class Encoder(nn.Module):
         )
         self.dropout = nn.Dropout(self.dropout)
 
-    def forward(
-        self,
-        src,
-        lengths,
-    ):
+    def forward(self,src,lengths):
         # src: (batch_size, max_src_len)
         # lengths: (batch_size)
         #############################################
@@ -109,7 +99,22 @@ class Encoder(nn.Module):
         # - Use torch.nn.utils.rnn.pad_packed_sequence to unpack the packed sequences
         #   (after passing them to the LSTM)
         #############################################
-        raise NotImplementedError
+        print("check 1")
+        emb = self.embedding(src)
+        # print("emb is - ", emb)
+        # print("src is - ", src)
+        print("check 2")
+        temp_padded = pack(emb, lengths, batch_first = True, enforce_sorted = False)
+        # print("temp_padded is - ", temp_padded)
+        print("check 2")
+        output, hidden_n = self.lstm(temp_padded)
+        # print("check")
+        # print("output is - ", output)
+        # print("hidden_n is - ", hidden_n)
+        output, _ = unpack(output, batch_first=True)
+        if self.lstm.bidirectional:
+            hidden_n = self._reshape_hidden(hidden_n)
+        return output, hidden_n
         #############################################
         # END OF YOUR CODE
         #############################################
@@ -118,6 +123,25 @@ class Encoder(nn.Module):
         # each tensor is (num_layers * num_directions, batch_size, hidden_size)
         # TODO: Uncomment the following line when you implement the forward pass
         # return enc_output, final_hidden
+    def _merge_tensor(self, state_tensor):
+        
+        forward_states = state_tensor[::2]
+        backward_states = state_tensor[1::2]
+        return torch.cat([forward_states, backward_states], 2)
+
+    def _reshape_hidden(self, hidden):
+        """
+        hidden:
+            num_layers * num_directions x batch x self.hidden_size // 2
+            or a tuple of these
+        returns:
+            num_layers
+        """
+        assert self.lstm.bidirectional
+        if isinstance(hidden, tuple):
+            return tuple(self._merge_tensor(h) for h in hidden)
+        else:
+            return self._merge_tensor(hidden)
 
 
 class Decoder(nn.Module):
@@ -144,7 +168,7 @@ class Decoder(nn.Module):
             self.hidden_size,
             batch_first=True,
         )
-
+        self.output_layer = nn.Linear(hidden_size, tgt_vocab_size)
         self.attn = attn
 
     def forward(
@@ -180,7 +204,18 @@ class Decoder(nn.Module):
         #         src_lengths,
         #     )
         #############################################
-        raise NotImplementedError
+        print("check 4")
+        emb = self.embedding(tgt)
+        print("check 5")
+        output, dec_state = self.lstm(emb, dec_state)
+        print("check 6")
+        alignment = None
+        if self.attn is not None:
+            print("check 7")
+            output = self.attn(output, context)
+        print("check 8")
+        flat_output = output.contiguous().view(-1, self.lstm.hidden_size)
+        return self.output_layer(flat_output), alignment
         #############################################
         # END OF YOUR CODE
         #############################################
