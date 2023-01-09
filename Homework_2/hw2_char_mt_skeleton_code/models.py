@@ -99,21 +99,22 @@ class Encoder(nn.Module):
         # - Use torch.nn.utils.rnn.pad_packed_sequence to unpack the packed sequences
         #   (after passing them to the LSTM)
         #############################################
-        print("check 1")
+        # print("check 1")
         emb = self.embedding(src)
         # print("emb is - ", emb)
         # print("src is - ", src)
-        print("check 2")
+        # print("check 2")
+        emb = self.dropout(emb)
         temp_padded = pack(emb, lengths, batch_first = True, enforce_sorted = False)
         # print("temp_padded is - ", temp_padded)
-        print("check 2")
+        # print("check 2.5")
         output, hidden_n = self.lstm(temp_padded)
         # print("check")
         # print("output is - ", output)
         # print("hidden_n is - ", hidden_n)
         output, _ = unpack(output, batch_first=True)
-        if self.lstm.bidirectional:
-            hidden_n = self._reshape_hidden(hidden_n)
+        hidden_n = self._reshape_hidden(hidden_n)
+        output = self.dropout(output)
         return output, hidden_n
         #############################################
         # END OF YOUR CODE
@@ -145,39 +146,20 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(
-        self,
-        hidden_size,
-        tgt_vocab_size,
-        attn,
-        padding_idx,
-        dropout,
-    ):
+    def __init__(self, hidden_size, tgt_vocab_size, attn, padding_idx, dropout):
         super(Decoder, self).__init__()
         self.hidden_size = hidden_size
         self.tgt_vocab_size = tgt_vocab_size
         self.dropout = dropout
 
-        self.embedding = nn.Embedding(
-            self.tgt_vocab_size, self.hidden_size, padding_idx=padding_idx
-        )
+        self.embedding = nn.Embedding(self.tgt_vocab_size, self.hidden_size, padding_idx=padding_idx)
 
         self.dropout = nn.Dropout(self.dropout)
-        self.lstm = nn.LSTM(
-            self.hidden_size,
-            self.hidden_size,
-            batch_first=True,
-        )
+        self.lstm = nn.LSTM(self.hidden_size, self.hidden_size, batch_first=True,)
         self.output_layer = nn.Linear(hidden_size, tgt_vocab_size)
         self.attn = attn
 
-    def forward(
-        self,
-        tgt,
-        dec_state,
-        encoder_outputs,
-        src_lengths,
-    ):
+    def forward(self, tgt, dec_state, encoder_outputs, src_lengths):
         # tgt: (batch_size, max_tgt_len)
         # dec_state: tuple with 2 tensors
         # each tensor is (num_layers * num_directions, batch_size, hidden_size)
@@ -204,18 +186,24 @@ class Decoder(nn.Module):
         #         src_lengths,
         #     )
         #############################################
-        print("check 4")
+        # print("check 4")
         emb = self.embedding(tgt)
-        print("check 5")
+        # print("check 5")
+        emb = self.dropout(emb)
         output, dec_state = self.lstm(emb, dec_state)
-        print("check 6")
-        alignment = None
+        # print("output before dropout is - ", output)
+        output = self.dropout(output)
+        # print("output after dropout is - ", output)
+        # print("check 6")
+        if self.training is True:
+            output = output[:, :-1, :]
+        # print("output after resizing is - ", output)
+        # print("check 7, 8")
         if self.attn is not None:
-            print("check 7")
-            output = self.attn(output, context)
-        print("check 8")
-        flat_output = output.contiguous().view(-1, self.lstm.hidden_size)
-        return self.output_layer(flat_output), alignment
+            output = self.attn(output, encoder_outputs, src_lengths)
+        # print("output before return value is - ", output)
+        # print("output shape is - ", output.shape)
+        return output, dec_state
         #############################################
         # END OF YOUR CODE
         #############################################
@@ -224,6 +212,7 @@ class Decoder(nn.Module):
         # each tensor is (num_layers, batch_size, hidden_size)
         # TODO: Uncomment the following line when you implement the forward pass
         # return outputs, dec_state
+
 
 
 class Seq2Seq(nn.Module):

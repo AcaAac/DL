@@ -225,25 +225,18 @@ def main():
     else:
         attn = None
 
-    decoder = Decoder(
-        opt.hidden_size,
-        tgt_vocab_size,
-        attn,
-        padding_idx,
-        opt.dropout,
-    )
+    # print("decoder before Decoder is - ", decoder)
+    # print("decoder shape before Decoder is - ", decoder.shape)
+    decoder = Decoder(opt.hidden_size, tgt_vocab_size, attn, padding_idx, opt.dropout)
+    print("decoder after Decoder is - ", decoder)
     print("check 9")
     model = Seq2Seq(encoder, decoder).to(device)
+    print("model before train is - ", model)
     model.train()
+    print("model after train is - ", model)
     print("check 10")
     print("Training...")
-    val_acc, test_acc = train(
-        data_iters,
-        model,
-        opt.lr,
-        opt.n_epochs,
-        padding_idx,
-    )
+    val_acc, test_acc = train(data_iters, model, opt.lr, opt.n_epochs, padding_idx)
     print("check 11")
 
     print("Final validation error rate: %.4f" % (val_acc[-1]))
