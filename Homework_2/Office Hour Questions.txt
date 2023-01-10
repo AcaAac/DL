@@ -1,0 +1,20 @@
+Question 1 - 
+inverse of vec ?
+equação da practical 8??
+Question 2 - 
+
+muito a ser usado da question 1 suposto?
+clarificação na pergunta 3
+verificação de gráficos principalmente o 0.01 LR
+
+a cnn tira vantagem de parameter sharing para resolve rproblmea sde clasficiaça~~o
+a o usar resta vantagem temos menos paramteros que FF, e por isso devido a esparasidade e conectividade local leva a que a estrutura natural de imagens leva a aCNN aprender as imagens
+
+ALEM DE WEIGHT SHARING E COMO SAO MENOS PARAMTEROS A VER E POR CAUSA DO BACKRPOPAGATION
+
+CNNs podem aprender a estrutura natural da simagens com equivariancia.
+
+dimensao output conv layer
+dim output max pooling layer
+dim output fully connected layer
+numero de paramteros da rede cnn

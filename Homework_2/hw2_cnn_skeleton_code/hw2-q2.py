@@ -223,7 +223,7 @@ def main():
     print("n_classes is - ", n_classes, "n_feats is - ", n_feats)
     print("learning rate is @ - ", opt.learning_rate)
     # initialize the model
-    model = CNN(opt.dropout).to(device)
+    model = CNN(opt.dropout)
     
     # get an optimizer
     optims = {"adam": torch.optim.Adam, "sgd": torch.optim.SGD}
@@ -244,9 +244,9 @@ def main():
     for ii in epochs:
         print('Training epoch {}'.format(ii))
         for X_batch, y_batch in train_dataloader:
-            X_batch.to(device)
-            y_batch.to(device)
-            print(X_batch.is_cuda)
+            # X_batch.to(device)
+            # y_batch.to(device)
+            # print(X_batch.is_cuda)
             # print("X_batch is - ", X_batch, "y_batch is - ", y_batch)
             loss = train_batch(
                 X_batch, y_batch, model, optimizer, criterion)
