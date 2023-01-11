@@ -13,22 +13,14 @@ def reshape_state(state):
 
 
 class Attention(nn.Module):
-    def __init__(
-        self,
-        hidden_size,
-    ):
+    def __init__(self,hidden_size):
 
         super(Attention, self).__init__()
         "Luong et al. general attention (https://arxiv.org/pdf/1508.04025.pdf)"
         self.linear_in = nn.Linear(hidden_size, hidden_size, bias=False)
         self.linear_out = nn.Linear(hidden_size * 2, hidden_size)
 
-    def forward(
-        self,
-        query,
-        encoder_outputs,
-        src_lengths,
-    ):
+    def forward(self,query,encoder_outputs,src_lengths):
         # query: (batch_size, 1, hidden_dim)
         # encoder_outputs: (batch_size, max_src_len, hidden_dim)
         # src_lengths: (batch_size)
@@ -37,7 +29,13 @@ class Attention(nn.Module):
         # Tip: use torch.masked_fill to do this
         # src_seq_mask: (batch_size, max_src_len)
         # the "~" is the elementwise NOT operator
+        scores = torch.bmm((self.linear_in(query)), torch.transpose(encoder_outputs, 1, 2))
         src_seq_mask = ~self.sequence_mask(src_lengths)
+        scores.masked_fill_(src_seq_mask.unsqueeze(1), -float('Inf'))
+        prob = torch.softmax(scores, dim = 2)
+        context = torch.bmm(prob, encoder_outputs)
+        attention_output = torch.tanh(self.linear_out(torch.cat((context, query), dim = 2)))
+        return attention_output
         #############################################
         # TODO: Implement the forward pass of the attention layer
         # Hints:
@@ -190,6 +188,7 @@ class Decoder(nn.Module):
         emb = self.embedding(tgt)
         # print("check 5")
         emb = self.dropout(emb)
+        # for i in :
         output, dec_state = self.lstm(emb, dec_state)
         # print("output before dropout is - ", output)
         output = self.dropout(output)
