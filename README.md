@@ -29,7 +29,7 @@ To set up the environment for Homework 1, follow these steps:
 
 ```bash
 # Clone the repository
-git clone https://github.com/AcaAac/Deep-Learning--IST
+git clone https://github.com/AcaAac/Deep-Learning--IST.git
 
 # Navigate to the MLP homework directory
 cd Deep-Learning--IST/Homework_1
@@ -74,7 +74,7 @@ To set up the environment for Homework 2, follow these steps:
 
 ```bash
 # Clone the repository
-git clone https://github.com/AcaAac/Deep-Learning--IST
+git clone https://github.com/AcaAac/Deep-Learning--IST.git
 
 # Navigate to the MLP homework directory
 cd Deep-Learning--IST/Homework_2
