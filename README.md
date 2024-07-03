@@ -16,9 +16,6 @@ This repository contains two homework assignments for the Deep Learning course. 
   - [Usage](#usage)
   - [Contents](#contents)
   - [Report](#report-2)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact Information](#contact-information)
 
 ## Homework 1: MLP
 
