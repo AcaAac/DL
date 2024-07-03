@@ -29,10 +29,10 @@ To set up the environment for Homework 1, follow these steps:
 
 ```bash
 # Clone the repository
-git clone https://github.com/AcaAac/DL.git
+git clone https://github.com/AcaAac/Deep-Learning--IST
 
 # Navigate to the MLP homework directory
-cd DL/Homework_1
+cd Deep-Learning--IST/Homework_1
 
 # Unzip the submitted code
 unzip 96138_105545.zip
@@ -51,7 +51,7 @@ pip install torch torchvision
 ```bash
 # Navigate to the directory containing the code
 
-cd DL/Homework_1/96138_105545
+cd Deep-Learning--IST/Homework_1/96138_105545
 
 # Execute both homeworks
 python hw1-q1.py
@@ -60,7 +60,7 @@ python hw1-q2.py
 
 ### Report
 ```bash
-cd DL/Homework_1/Deep_Learning_Homework_Assignment_1
+cd Deep-Learning--IST/Homework_1/Deep_Learning_Homework_Assignment_1
 ```
 ## Homework 2: CNN
 
@@ -74,10 +74,10 @@ To set up the environment for Homework 2, follow these steps:
 
 ```bash
 # Clone the repository
-git clone https://github.com/AcaAac/DL.git
+git clone https://github.com/AcaAac/Deep-Learning--IST
 
 # Navigate to the MLP homework directory
-cd DL/Homework_2
+cd Deep-Learning--IST/Homework_2
 
 # Unzip the submitted code
 unzip 96138_105545.zip
@@ -96,7 +96,7 @@ pip install torch torchvision
 ```bash
 # Navigate to the directory containing the code
 
-cd DL/Homework_1/96138_105545
+cd Deep-Learning--IST/Homework_1/96138_105545
 
 # Execute questions
 python models.py
@@ -106,5 +106,5 @@ python hw2-q3.py
 ```
 ### Report
 ```bash
-cd DL/Homework_2/Deep_Learning_Homework_Assignment_2
+cd Deep-Learning--IST/Homework_2/Deep_Learning_Homework_Assignment_2
 ```
