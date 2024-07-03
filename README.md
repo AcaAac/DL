@@ -9,11 +9,13 @@ This repository contains two homework assignments for the Deep Learning course. 
   - [Installation](#installation)
   - [Usage](#usage)
   - [Contents](#contents)
+  - [Report](#report-1)
 - [Homework 2: CNN](#homework-2-cnn)
   - [Description](#description)
   - [Installation](#installation)
   - [Usage](#usage)
   - [Contents](#contents)
+  - [Report](#report-2)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact Information](#contact-information)
@@ -30,7 +32,7 @@ To set up the environment for Homework 1, follow these steps:
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/DL.git
+git clone https://github.com/AcaAac/DL.git
 
 # Navigate to the MLP homework directory
 cd DL/Homework_1
@@ -38,10 +40,30 @@ cd DL/Homework_1
 # Unzip the submitted code
 unzip 96138_105545.zip
 
-# Install the required dependencies
-pip install -r requirements.txt
+# Download and install the Kuzushiji-MNIST dataset
+# You can download it from: https://github.com/rois-codh/kmnist
+
+# Install PyTorch
+pip install torch torchvision
 
 
+```
+
+### Usage
+
+```bash
+# Navigate to the directory containing the code
+
+cd DL/Homework_1/96138_105545
+
+# Execute both homeworks
+python hw1-q1.py
+python hw1-q2.py
+```
+
+### Report
+```bash
+cd DL/Homework_1/Deep_Learning_Homework_Assignment_1
 ```
 ## Homework 2: CNN
 
@@ -55,7 +77,7 @@ To set up the environment for Homework 2, follow these steps:
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/DL.git
+git clone https://github.com/AcaAac/DL.git
 
 # Navigate to the MLP homework directory
 cd DL/Homework_2
@@ -63,8 +85,29 @@ cd DL/Homework_2
 # Unzip the submitted code
 unzip 96138_105545.zip
 
-# Install the required dependencies
-pip install -r requirements.txt
+# Download and install the Kuzushiji-MNIST dataset
+# You can download it from: https://github.com/rois-codh/kmnist
+
+# Install PyTorch
+pip install torch torchvision
 
 
+```
+
+### Usage
+
+```bash
+# Navigate to the directory containing the code
+
+cd DL/Homework_1/96138_105545
+
+# Execute questions
+python models.py
+python hw2-q2.py
+python hw2-q3.py
+# 
+```
+### Report
+```bash
+cd DL/Homework_2/Deep_Learning_Homework_Assignment_2
 ```
