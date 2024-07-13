@@ -66,7 +66,7 @@ cd Deep-Learning--IST/Homework_1/Deep_Learning_Homework_Assignment_1
 
 ### Description
 
-This assignment involves the implementation and training of a Convolutional Neural Network (CNN) for image classification. The homework folder includes the problem sheet, the submitted code, and the comprehensive report.
+This assignment involves the implementation and training of a Convolutional Neural Network (CNN) for image classification and a CMT Model from English to Spanish. The homework folder includes the problem sheet, the submitted code, and the comprehensive report.
 
 ### Installation
 
